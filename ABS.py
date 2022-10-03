@@ -12,6 +12,18 @@ scolor2="DeepPink4"
 bgcolor="snow4"
 windowcolor="grey18"
 
+## PyInstaller Path Converter
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 #### Layout
 
 
@@ -24,7 +36,7 @@ selector = [[
 	sg.Button("Refresh", button_color=scolor)
 	]]
 
-filelist = [sg.Listbox([], size=(0,16), key= '-LIST-', background_color=bgcolor, text_color="white", expand_x=True, sbar_background_color=scolor)]
+filelist = [sg.Listbox([], size=(0,16), key= '-LIST-', background_color=bgcolor, text_color="white", expand_x=True, expand_y=True, sbar_background_color=scolor)]
 
 loglist = [sg.Listbox([], no_scrollbar=True, size=(0,8), key= '-LOG-', background_color=scolor2, text_color="white", expand_x=True)]
 log = []
@@ -48,6 +60,7 @@ modulecol2 = sg.Column([
 	background_color=bgcolor,
 	expand_y=True)
 
+
 modulelist = [modulecol1, modulecol2]
 
 bottomcol = sg.Column([[sg.Button("Process", button_color=scolor, size=30, border_width=4)], loglist], element_justification="c", justification="c", expand_x=True, background_color=windowcolor)
@@ -63,19 +76,7 @@ layout = [[
 	]]
 
 
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
-
-
-window = sg.Window('ABS', layout,resizable=True, finalize=True, background_color=windowcolor, size=(960,712), icon=resource_path("data/dtico.ico"))
-
+window = sg.Window('ABS', layout,resizable=True, finalize=True, background_color=windowcolor, size=(960,712), icon=resource_path("data/dtico.ico"), font=("Calibri", 12))
 
 ### Helpers
 
