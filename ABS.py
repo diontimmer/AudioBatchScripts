@@ -5,7 +5,7 @@ import os
 from pydub import AudioSegment, effects
 
 
-### color settings
+### Color settings
 
 scolor="violetred3"
 scolor2="DeepPink4"
@@ -20,7 +20,8 @@ selector = [[
 	sg.In(size=(25,1), enable_events=True ,key='-FOLDER-',background_color="snow1", readonly=True), 
 	sg.FolderBrowse(button_color=scolor), 
 	sg.Checkbox('Iterate down folder tree? (Recursive)', key="-REC-", enable_events=True, background_color=scolor),
-	sg.Checkbox('Show paths?', key="-SHOWPATHS-", enable_events=True, background_color=scolor)
+	sg.Checkbox('Show paths?', key="-SHOWPATHS-", enable_events=True, background_color=scolor),
+	sg.Button("Refresh", button_color=scolor)
 	]]
 
 filelist = [sg.Listbox([], size=(0,16), key= '-LIST-', background_color=bgcolor, text_color="white", expand_x=True, sbar_background_color=scolor)]
@@ -40,7 +41,8 @@ modulecol1 = sg.Column([
 	expand_y=True)
 
 modulecol2 = sg.Column([
-	[sg.Checkbox('Prefix', key="-PREFIXBOOL-", background_color=bgcolor), sg.In(size=(10,0), key="-PREFIXSTR-")]
+	[sg.Checkbox('Prefix', key="-PREFIXBOOL-", background_color=bgcolor), sg.In(size=(10,0), key="-PREFIXSTR-")],
+	[sg.Checkbox('Replace Text', key="-REPL-", background_color=bgcolor), sg.In(size=(10,0), key="-RPLFROM-", enable_events=True), sg.Text('>>>', background_color=bgcolor), sg.In(size=(10,0), key="-RPLTO-")]
 	], 
 	vertical_alignment="top",
 	background_color=bgcolor,
@@ -63,7 +65,7 @@ layout = [[
 window = sg.Window('ABS', layout,resizable=True, finalize=True, background_color=windowcolor, size=(960,712))
 
 
-### helpers
+### Helpers
 
 def getfilenames(paths):
 	fnames = []
@@ -138,13 +140,28 @@ def rmempty(files, FLStudio):
 				os.remove(file)
 
 def setprefix(files, prefix):
+	curproc = 0
 	for file in files:
 		fname = os.path.basename(file)
 		d = os.path.dirname(file)
-		filelog("Renamed to " + prefix + fname)
 		os.rename(file, d + "/" + prefix + fname)
-	sleep(1)
-	updatefilelist(values["-SHOWPATHS-"], files)
+		filelog("Renamed to " + prefix + fname)
+		curproc += 1
+		if curproc == len(files):
+			updatefilelist(values["-SHOWPATHS-"], getfiles(d, values['-REC-']))
+
+def findrepl(files, rplfrom, rplto):
+	curproc = 0
+	for file in files:
+		fname = os.path.basename(file)
+		newfname = fname.replace(rplfrom, rplto)
+		d = os.path.dirname(file)
+		filelog("Renamed " + fname + " to " + newfname)
+		os.rename(file, d + "/" + newfname)
+		curproc += 1
+		if curproc == len(files):
+			updatefilelist(values["-SHOWPATHS-"], getfiles(d, values['-REC-']))
+
 
 ### GUI Logic
 
@@ -166,6 +183,10 @@ while True:
 		updatefilelist(values["-SHOWPATHS-"], currentfiles)
 		folderset = True
 		filelog("Folder Set")
+	if event == 'Refresh':
+		if folderset == True:
+			currentfiles = getfiles(folder, values['-REC-'])
+			updatefilelist(values["-SHOWPATHS-"], currentfiles)	
 
 	if event == '-REC-':
 		if folderset == True:
@@ -174,23 +195,32 @@ while True:
 
 	if event == '-SHOWPATHS-':
 		if folderset == True:
+			currentfiles = getfiles(folder, values['-REC-'])
 			updatefilelist(values["-SHOWPATHS-"], currentfiles)
 
 
 	if event == 'Process':
 		if folderset == True:
 			currentfiles = getfiles(folder, values['-REC-'])
-			try:            
-				if values['-BIT-'] == True:
-					process_32to24(currentfiles)
+			try:
 				if values['-TRIM-'] == True:
 					trimsilence(currentfiles)
 				if values['-NORM-'] == True:
-					normalize(currentfiles)
-				if values['-EMPTY-'] == True:
-					rmempty(currentfiles, values['-EMPTYFL-'])
+					normalize(currentfiles)            
+				if values['-BIT-'] == True:
+					process_32to24(currentfiles)
 				if values['-PREFIXBOOL-'] == True:
 					setprefix(currentfiles, values["-PREFIXSTR-"])
+				if values['-REPL-'] == True:
+					try:
+						findrepl(currentfiles, values["-RPLFROM-"], values["-RPLTO-"])
+					except FileNotFoundError:
+						findrepl(getfiles(folder, values['-REC-']), values["-RPLFROM-"], values["-RPLTO-"])
+
+
+##### Destructive, should be last!
+				if values['-EMPTY-'] == True:
+					rmempty(currentfiles, values['-EMPTYFL-'])
 
 
 			except NameError as error:

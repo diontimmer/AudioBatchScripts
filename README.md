@@ -10,6 +10,7 @@ These tools include:
 - Remove empty wav files (Aswell as _Current & _Master files for FL)
 - Convert 32bit to 24bit for compatibility of certain programs
 - Add prefixes to your files (KICK_Filename.wav)
+- Find and replace text.
 
 To install:
 Download a built .exe from [here](https://www.github.com/diontimmer/AudioBatchScripts/releases/latest/download/ABS.exe) and run it.
