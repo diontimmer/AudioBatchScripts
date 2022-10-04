@@ -29,7 +29,7 @@ def resource_path(relative_path):
 
 selector = [[
 	sg.Text('Folder', background_color=bgcolor), 
-	sg.In(size=(25,1), enable_events=True ,key='-FOLDER-',background_color="snow1", readonly=True), 
+	sg.In(size=(25,1), enable_events=True ,key='-FOLDER-', readonly=True), 
 	sg.FolderBrowse(button_color=scolor), 
 	sg.Checkbox('Iterate down folder tree? (Recursive)', key="-REC-", enable_events=True, background_color=scolor),
 	sg.Checkbox('Show paths?', key="-SHOWPATHS-", enable_events=True, background_color=scolor),
@@ -42,9 +42,10 @@ loglist = [sg.Listbox([], no_scrollbar=True, size=(0,8), key= '-LOG-', backgroun
 log = []
 
 modulecol1 = sg.Column([
-	[sg.Checkbox('Trim Leading Silence', key='-TRIM-', background_color=bgcolor)], 
-	[sg.Checkbox('Normalize peak to 0db', key='-NORM-', background_color=bgcolor)],
-	[sg.Checkbox('Convert 32Bit to 24Bit', key="-BIT-", background_color=bgcolor)],
+	[sg.Checkbox('Trim leading/ending silence', key='-TRIM-', background_color=bgcolor)], 
+	[sg.Checkbox('Normalize peak with', key='-NORM-', background_color=bgcolor), sg.In("1", size=(3,3), key='-HEADRM-', ), sg.Text('db headroom', background_color=bgcolor)],
+	[sg.Checkbox('Convert bitrate', key="-BIT-", background_color=bgcolor), sg.Combo([16, 24], default_value=24, button_background_color=scolor, key='-BITRATE-', readonly=True), sg.Text("BIT",background_color=bgcolor)],
+	[sg.Checkbox('Convert samplerate', key="-SMPRATE-", background_color=bgcolor), sg.Combo([44100, 48000, 96000, 192000], default_value=44100, button_background_color=scolor, key='-SAMPLERATE-', readonly=True), sg.Text("Hz",background_color=bgcolor)],	
 	[sg.Checkbox('Delete empty audio files', key="-EMPTY-", background_color=bgcolor)],
 	[sg.Checkbox('Include _Master / _Current files? (FL)',default=True, key="-EMPTYFL-", pad=(30,0), background_color=bgcolor,)]
 	],
@@ -76,7 +77,7 @@ layout = [[
 	]]
 
 
-window = sg.Window('ABS', layout,resizable=True, finalize=True, background_color=windowcolor, size=(960,712), icon=resource_path("data/dtico.ico"), font=("Calibri", 12))
+window = sg.Window('ABS', layout,resizable=True, finalize=True, background_color=windowcolor, size=(960,800), icon=resource_path("data/dtico.ico"), font=("Calibri", 11))
 
 ### Helpers
 
@@ -122,21 +123,39 @@ def trimsilence(files):
 		trimmed_sound.export(file, format="wav")
 		filelog("Trimmed " + fname)
 
-def process_32to24(files):
+def convertbitrate(files):
+	bitrate = str(values['-BITRATE-'])
 	for file in files:
 		fname = os.path.basename(file)
-		if(file.endswith('.wav')):
-			data, samplerate = soundfile.read(file)
-			soundfile.write(file, data, samplerate, subtype='PCM_24')
-			filelog("Converting " + fname + " to 24 - bit")
+		data, samplerate = soundfile.read(file)
+		soundfile.write(file, data, samplerate, subtype='PCM_' + bitrate)
+		filelog("Converting " + fname + " to " + bitrate + " - bit")
+
+def convertsamplerate(files):
+	samplerate = int(values['-SAMPLERATE-'])
+	for file in files:
+		fname = os.path.basename(file)
+		sound = AudioSegment.from_file(file)
+		convsound = sound.set_frame_rate(samplerate)
+		convsound.export(file, format='wav')
+		filelog("Converting " + fname + " to " + str(samplerate) + "Hz")
 
 def normalize(files):
-	for file in files:
-		fname = os.path.basename(file)
-		sound = AudioSegment.from_file(file, "wav")
-		normalized_sound = effects.normalize(sound, headroom=0)
-		normalized_sound.export(file, format="wav")
-		filelog("Normalizing " + fname)
+	headroom = values['-HEADRM-']
+	if headroom == '':
+		filelog('Please fill in the headroom amount to normalize!')
+	else:
+		try:
+			hrval = int(headroom)
+			for file in files:
+				fname = os.path.basename(file)
+				sound = AudioSegment.from_file(file, "wav")
+				normalized_sound = effects.normalize(sound, headroom=hrval)
+				normalized_sound.export(file, format="wav")
+				filelog("Normalizing " + fname)
+		except:
+			filelog('Please fill the headroom amount with a number to normalize!')
+
 
 def rmempty(files, FLStudio):
 	for file in files:
@@ -221,7 +240,9 @@ while True:
 				if values['-NORM-'] == True:
 					normalize(currentfiles)            
 				if values['-BIT-'] == True:
-					process_32to24(currentfiles)
+					convertbitrate(currentfiles)
+				if values['-SMPRATE-'] == True:
+					convertsamplerate(currentfiles)
 				if values['-PREFIXBOOL-'] == True:
 					setprefix(currentfiles, values["-PREFIXSTR-"])
 				if values['-REPL-'] == True:
