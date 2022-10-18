@@ -199,7 +199,7 @@ def findrepl(files, rplfrom, rplto):
 
 def filelog(logmsg):
 	log.append(logmsg)
-	window.Element('-LOG-').update(log)
+	window.Element('-LOG-').update(log, scroll_to_index=len(log))
 
 filelog("Ready to juice! By Dion Timmer")
 
