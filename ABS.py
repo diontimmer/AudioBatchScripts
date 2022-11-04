@@ -94,10 +94,10 @@ def updatefilelist(showpaths, paths):
 		window.Element('-LIST-').update(values=getfilenames(paths))
 
 def getfiles(directory, recursive):
+	filelog(f"Checking for wavs in {directory}")
 	files = []
-	for file in glob.iglob(directory + '**/**', recursive=recursive):
-		if(file.endswith('.wav')):
-			files.append(file)
+	for file in glob.glob(f"{directory}/*.wav", recursive=recursive):
+		files.append(file)
 	if len(files) == 0:
 		filelog("No valid wavs found!")
 	return files
