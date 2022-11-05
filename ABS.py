@@ -55,6 +55,7 @@ modulecol1 = sg.Column([
 
 modulecol2 = sg.Column([
 	[sg.Checkbox('Prefix', key="-PREFIXBOOL-", background_color=bgcolor), sg.In(size=(10,0), key="-PREFIXSTR-")],
+	[sg.Checkbox('Suffix', key="-SUFFIXBOOL-", background_color=bgcolor), sg.In(size=(10,0), key="-SUFFIXSTR-")],
 	[sg.Checkbox('Replace Text', key="-REPL-", background_color=bgcolor), sg.In(size=(10,0), key="-RPLFROM-", enable_events=True), sg.Text('>>>', background_color=bgcolor), sg.In(size=(10,0), key="-RPLTO-")]
 	], 
 	vertical_alignment="top",
@@ -182,6 +183,17 @@ def setprefix(files, prefix):
 		if curproc == len(files):
 			updatefilelist(values["-SHOWPATHS-"], getfiles(d, values['-REC-']))
 
+def setsuffix(files, suffix):
+	curproc = 0
+	for file in files:
+		fname = os.path.basename(file).split(".")[0]
+		d = os.path.dirname(file)
+		os.rename(file, d + "/" + fname + suffix + ".wav")
+		filelog("Renamed to " + fname + suffix + ".wav")
+		curproc += 1
+		if curproc == len(files):
+			updatefilelist(values["-SHOWPATHS-"], getfiles(d, values['-REC-']))
+
 def findrepl(files, rplfrom, rplto):
 	curproc = 0
 	for file in files:
@@ -245,6 +257,10 @@ while True:
 					convertsamplerate(currentfiles)
 				if values['-PREFIXBOOL-'] == True:
 					setprefix(currentfiles, values["-PREFIXSTR-"])
+					currentfiles = getfiles(folder, values['-REC-'])
+				if values['-SUFFIXBOOL-'] == True:
+					setsuffix(currentfiles, values["-SUFFIXSTR-"])
+					currentfiles = getfiles(folder, values['-REC-'])
 				if values['-REPL-'] == True:
 					try:
 						findrepl(currentfiles, values["-RPLFROM-"], values["-RPLTO-"])
