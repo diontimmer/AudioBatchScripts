@@ -135,10 +135,10 @@ def convertsamplerate(files):
 	samplerate = int(values['-SAMPLERATE-'])
 	for file in files:
 		fname = os.path.basename(file)
-		sound = AudioSegment.from_file(file)
-		convsound = sound.set_frame_rate(samplerate)
-		convsound.export(file, format='wav')
-		filelog("Converting " + fname + " to " + str(samplerate) + "Hz")
+		ob = soundfile.SoundFile(file)
+		data, samplerate = soundfile.read(file)
+		soundfile.write(file, data, samplerate, subtype=ob.subtype)
+		filelog("Converting " + fname + " to " + str(samplerate) + " - bit")
 
 def normalize(files):
 	headroom = values['-HEADRM-']
