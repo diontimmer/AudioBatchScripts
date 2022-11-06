@@ -36,7 +36,7 @@ selector = [[
 	sg.Button("Refresh", button_color=scolor)
 	]]
 
-filelist = [sg.Listbox([], size=(0,16), key= '-LIST-', background_color=bgcolor, text_color="white", expand_x=True, expand_y=True, sbar_background_color=scolor)]
+filelist = [sg.Listbox([], size=(0,16), key= '-LIST-', background_color=bgcolor, text_color="white", expand_x=True, expand_y=True, sbar_background_color=scolor, select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, highlight_background_color="DarkGreen", highlight_text_color="white")]
 
 loglist = [sg.Listbox([], no_scrollbar=True, size=(0,8), key= '-LOG-', background_color=scolor2, text_color="white", expand_x=True)]
 log = []
