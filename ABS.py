@@ -125,8 +125,24 @@ def spawn_popup_samples():
 	smpfolderset = False
 	samplepack_folderlist = [sg.Column([
 	[sg.Text("Drums", background_color=bgcolor)], 
-	[sg.Sizer(h_pixels=20), sg.Checkbox("Drum_Loops", background_color=bgcolor, key="SMP_DRUM_LOOPS"), sg.Text("/", background_color=windowcolor), sg.Checkbox("Cymbal_Loops", background_color="darkslateblue", key="SMP_CYMBAL_LOOPS"), sg.Checkbox("Hat_Loops", background_color="darkslateblue", key="SMP_HAT_LOOPS"), sg.Checkbox("Kick_Loops", background_color="darkslateblue", key="SMP_KICK_LOOPS"), sg.Checkbox("Snare_Loops", background_color="darkslateblue", key="SMP_SNARE_LOOPS")], 
-	[sg.Sizer(h_pixels=20), sg.Checkbox("Drum_Hits", background_color=bgcolor, key="SMP_DRUM_HITS"), sg.Text("/", background_color=windowcolor), sg.Checkbox("Cymbals", background_color="darkslateblue", key="SMP_CYMBALS"), sg.Checkbox("Hats", background_color="darkslateblue", key="SMP_HATS"), sg.Checkbox("Kicks", background_color="darkslateblue", key="SMP_KICKS"), sg.Checkbox("Snares", background_color="darkslateblue", key="SMP_SNARES")], 
+	[sg.Sizer(h_pixels=20), 
+		sg.Checkbox("Drum_Loops", background_color=bgcolor, key="SMP_DRUM_LOOPS"), 
+		sg.Text("/", background_color=windowcolor), 
+		sg.Checkbox("Cymbal_Loops", background_color="darkslateblue", key="SMP_CYMBAL_LOOPS"), 
+		sg.Checkbox("Hat_Loops", background_color="darkslateblue", key="SMP_HAT_LOOPS"), 
+		sg.Checkbox("Kick_Loops", background_color="darkslateblue", key="SMP_KICK_LOOPS"), 
+		sg.Checkbox("Snare_Loops", background_color="darkslateblue", key="SMP_SNARE_LOOPS"),
+		sg.Checkbox("Breakbeat_Loops", background_color="darkslateblue", key="SMP_BREAKBEAT_LOOPS"), 
+		sg.Checkbox("Full_Drum_Loops", background_color="darkslateblue", key="SMP_FULL_DRUM_LOOPS"),
+		], 
+	[sg.Sizer(h_pixels=20), 
+		sg.Checkbox("Drum_Hits", background_color=bgcolor, key="SMP_DRUM_HITS"), 
+		sg.Text("/", background_color=windowcolor), 
+		sg.Checkbox("Cymbals", background_color="darkslateblue", key="SMP_CYMBALS"), 
+		sg.Checkbox("Hats", background_color="darkslateblue", key="SMP_HATS"), 
+		sg.Checkbox("Kicks", background_color="darkslateblue", key="SMP_KICKS"), 
+		sg.Checkbox("Snares", background_color="darkslateblue", key="SMP_SNARES")
+		], 
 	[sg.Text("Percussion", background_color=bgcolor)], 
 	[sg.Sizer(h_pixels=20), sg.Checkbox("Percussion_Loops", background_color=bgcolor, key="SMP_PERCUSSION_LOOPS")], 
 	[sg.Sizer(h_pixels=20), sg.Checkbox("Percussion_Hits", background_color=bgcolor, key="SMP_PERCUSSION_HITS")], 
@@ -150,6 +166,10 @@ def spawn_popup_samples():
 	[sg.Sizer(h_pixels=20), sg.Checkbox("FX_Texture_Loops", background_color=bgcolor, key="SMP_FX_TEXTURE_LOOPS")], 
 	[sg.Text("Vocals", background_color=bgcolor)], 
 	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Loops", background_color=bgcolor, key="SMP_VOCAL_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Hook_Loops", background_color=bgcolor, key="SMP_VOCAL_HOOK_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Hooks", background_color=bgcolor, key="SMP_VOCAL_HOOKS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Phrase_Loops", background_color=bgcolor, key="SMP_VOCAL_PHRASE_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Phrases", background_color=bgcolor, key="SMP_VOCAL_PHRASES")], 
 	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Shots", background_color=bgcolor, key="SMP_VOCAL_SHOTS")], 
 	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Chops", background_color=bgcolor, key="SMP_VOCAL_CHOPS")], 
 	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Chop_Loops", background_color=bgcolor, key="SMP_VOCAL_CHOP_LOOPS")], 
@@ -157,6 +177,7 @@ def spawn_popup_samples():
 	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Ambience_Loops", background_color=bgcolor, key="SMP_VOCAL_AMBIENCE_LOOPS")], 
 	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Glitch", background_color=bgcolor, key="SMP_VOCAL_GLITCH")], 
 	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Glitch_Loops", background_color=bgcolor, key="SMP_VOCAL_GLITCH_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Chants", background_color=bgcolor, key="SMP_VOCAL_CHANTS")], 
 
 	], background_color=windowcolor, scrollable=True, vertical_scroll_only=True, sbar_background_color=bgcolor, expand_x=True, expand_y=True)]
 	layout = [samplepack_folderlist,
@@ -165,7 +186,7 @@ def spawn_popup_samples():
 		sg.FolderBrowse(button_color=scolor)],  
 		[sg.Button(button_text="Create", s=10, button_color=bgcolor), sg.Button(button_text="Cancel", s=10, button_color=bgcolor)]
 		]
-	popup = sg.Window('Sample Pack Generator', layout, background_color=windowcolor, icon=resource_path("data/dtico.ico"), font=("Calibri", 11), resizable=True, size=(750,1000))
+	popup = sg.Window('Sample Pack Generator', layout, background_color=windowcolor, icon=resource_path("data/dtico.ico"), font=("Calibri", 11), resizable=True, size=(1000,1000))
 	while True:
 		popevent, v = popup.read()
 		if popevent in (sg.WIN_CLOSED, 'Exit'):
@@ -189,6 +210,10 @@ def spawn_popup_samples():
 						make_safedir(lp_drumfolder + "/Kick_Loops")
 					if v["SMP_SNARE_LOOPS"]:
 						make_safedir(lp_drumfolder + "/Snare_Loops")
+					if v["SMP_BREAKBEAT_LOOPS"]:
+						make_safedir(lp_drumfolder + "/Breakbeat_Loops")
+					if v["SMP_FULL_DRUM_LOOPS"]:
+						make_safedir(lp_drumfolder + "/Full_Drum_Loops")
 				if v["SMP_DRUM_HITS"]:
 					make_safedir(os_drumfolder)
 					if v["SMP_CYMBALS"]:
@@ -254,10 +279,20 @@ def spawn_popup_samples():
 					make_safedir(os_vocfolder + "/Vocal_Shots")
 				if v["SMP_VOCAL_CHOPS"]:
 					make_safedir(os_vocfolder + "/Vocal_Chops")
+				if v["SMP_VOCAL_PHRASE_LOOPS"]:
+					make_safedir(lp_vocfolder + "/Vocal_Phrase_Loops")
+				if v["SMP_VOCAL_HOOK_LOOPS"]:
+					make_safedir(lp_vocfolder + "/Vocal_Hook_Loops")
+				if v["SMP_VOCAL_PHRASES"]:
+					make_safedir(os_vocfolder + "/Vocal_Phrases")
+				if v["SMP_VOCAL_HOOKS"]:
+					make_safedir(os_vocfolder + "/Vocal_Hooks")
 				if v["SMP_VOCAL_CHOP_LOOPS"]:
-					make_safedir(lp_vocfolder + "/Vocal_Chop Loops")
+					make_safedir(lp_vocfolder + "/Vocal_Chop_Loops")
 				if v["SMP_VOCAL_AMBIENCE"]:
 					make_safedir(os_vocfolder + "/Vocal_Ambience")
+				if v["SMP_VOCAL_CHANTS"]:
+					make_safedir(os_vocfolder + "/Vocal_Chants")
 				if v["SMP_VOCAL_AMBIENCE_LOOPS"]:
 					make_safedir(lp_vocfolder + "/Vocal_Ambience_Loops")
 				if v["SMP_VOCAL_GLITCH"]:
@@ -269,6 +304,7 @@ def spawn_popup_samples():
 
 				#####
 				popup.close()
+				filelog(f"Successfully created sample pack structure in {smpfolder}!")
 		if popevent == "Cancel":
 			popup.close()
 
@@ -389,7 +425,6 @@ while True:
 		currentfiles = get_files(folder, values['-REC-'])
 		update_filelist(values["-SHOWPATHS-"], currentfiles)
 		folderset = True
-		filelog("Folder Set")
 	if event == 'Refresh':
 		if folderset == True:
 			currentfiles = get_files(folder, values['-REC-'])
