@@ -7,10 +7,10 @@ from pydub import AudioSegment, effects
 
 ### Color settings
 
-scolor="violetred3"
-scolor2="DeepPink4"
-bgcolor="snow4"
-windowcolor="grey18"
+scolor="#4f565e"
+scolor2="#6c7684"
+bgcolor="#4d545e"
+windowcolor="#2e3238"
 
 ## PyInstaller Path Converter
 
@@ -33,7 +33,8 @@ selector = [[
 	sg.FolderBrowse(button_color=scolor), 
 	sg.Checkbox('Iterate down folder tree? (Recursive)', key="-REC-", enable_events=True, background_color=scolor),
 	sg.Checkbox('Show paths?', key="-SHOWPATHS-", enable_events=True, background_color=scolor),
-	sg.Button("Refresh", button_color=scolor)
+	sg.Button("Refresh", button_color=scolor),
+	sg.Button("Create Sample Folders", button_color=scolor),
 	]]
 
 filelist = [sg.Listbox([], size=(0,16), key= '-LIST-', background_color=bgcolor, text_color="white", expand_x=True, expand_y=True, sbar_background_color=scolor, select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, highlight_background_color="DarkGreen", highlight_text_color="white")]
@@ -82,20 +83,29 @@ window = sg.Window('ABS', layout,resizable=True, finalize=True, background_color
 
 ### Helpers
 
-def getfilenames(paths):
+def make_safedir(path):
+	if not os.path.exists(path):
+		os.makedirs(path)
+
+def get_filenames(paths):
 	fnames = []
 	for path in paths:
 		fnames.append(os.path.basename(path))
 	return fnames
 
-def updatefilelist(showpaths, paths):
+def get_full_foldernames(directory, filenames):
+	folnames = []
+	for file in filenames:
+		folnames.append(directory + "/"+ file)
+	return folnames
+
+def update_filelist(showpaths, paths):
 	if showpaths:
 		window.Element('-LIST-').update(values=paths)
 	else:
-		window.Element('-LIST-').update(values=getfilenames(paths))
+		window.Element('-LIST-').update(values=get_filenames(paths))
 
-def getfiles(directory, recursive):
-	filelog(f"Checking for wavs in {directory}")
+def get_files(directory, recursive):
 	files = []
 	for file in glob.glob(f"{directory}/*.wav", recursive=recursive):
 		files.append(file)
@@ -111,9 +121,160 @@ def detect_leading_silence(sound, silence_threshold=-50.0, chunk_size=1):
 
 	return trim_ms
 
+def spawn_popup_samples():
+	smpfolderset = False
+	samplepack_folderlist = [sg.Column([
+	[sg.Text("Drums", background_color=bgcolor)], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Drum_Loops", background_color=bgcolor, key="SMP_DRUM_LOOPS"), sg.Text("/", background_color=windowcolor), sg.Checkbox("Cymbal_Loops", background_color="darkslateblue", key="SMP_CYMBAL_LOOPS"), sg.Checkbox("Hat_Loops", background_color="darkslateblue", key="SMP_HAT_LOOPS"), sg.Checkbox("Kick_Loops", background_color="darkslateblue", key="SMP_KICK_LOOPS"), sg.Checkbox("Snare_Loops", background_color="darkslateblue", key="SMP_SNARE_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Drum_Hits", background_color=bgcolor, key="SMP_DRUM_HITS"), sg.Text("/", background_color=windowcolor), sg.Checkbox("Cymbals", background_color="darkslateblue", key="SMP_CYMBALS"), sg.Checkbox("Hats", background_color="darkslateblue", key="SMP_HATS"), sg.Checkbox("Kicks", background_color="darkslateblue", key="SMP_KICKS"), sg.Checkbox("Snares", background_color="darkslateblue", key="SMP_SNARES")], 
+	[sg.Text("Percussion", background_color=bgcolor)], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Percussion_Loops", background_color=bgcolor, key="SMP_PERCUSSION_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Percussion_Hits", background_color=bgcolor, key="SMP_PERCUSSION_HITS")], 
+	[sg.Text("Bass", background_color=bgcolor)], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Bass Loops", background_color=bgcolor, key="SMP_BASS_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Bass Shots", background_color=bgcolor, key="SMP_BASS_SHOTS")], 
+	[sg.Text("Synth", background_color=bgcolor)], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Synth_Loops", background_color=bgcolor, key="SMP_SYNTH_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Synth_Shots", background_color=bgcolor, key="SMP_SYNTH_SHOTS")], 
+	[sg.Text("FX", background_color=bgcolor)], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("FX_Loops", background_color=bgcolor, key="SMP_FX_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("FX_Shots", background_color=bgcolor, key="SMP_FX_SHOTS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("FX_Downlifters", background_color=bgcolor, key="SMP_FX_DOWNLIFTERS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("FX_Uplifters", background_color=bgcolor, key="SMP_FX_UPLIFTERS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("FX_Impacts", background_color=bgcolor, key="SMP_FX_IMPACTS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("FX_Ambience", background_color=bgcolor, key="SMP_FX_AMBIENCE")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("FX_Ambience_Loops", background_color=bgcolor, key="SMP_FX_AMBIENCE_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("FX_Glitch", background_color=bgcolor, key="SMP_FX_GLITCH")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("FX_Glitch_Loops", background_color=bgcolor, key="SMP_FX_GLITCH_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("FX_Textures", background_color=bgcolor, key="SMP_FX_TEXTURES")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("FX_Texture_Loops", background_color=bgcolor, key="SMP_FX_TEXTURE_LOOPS")], 
+	[sg.Text("Vocals", background_color=bgcolor)], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Loops", background_color=bgcolor, key="SMP_VOCAL_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Shots", background_color=bgcolor, key="SMP_VOCAL_SHOTS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Chops", background_color=bgcolor, key="SMP_VOCAL_CHOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Chop_Loops", background_color=bgcolor, key="SMP_VOCAL_CHOP_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Ambience", background_color=bgcolor, key="SMP_VOCAL_AMBIENCE")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Ambience_Loops", background_color=bgcolor, key="SMP_VOCAL_AMBIENCE_LOOPS")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Glitch", background_color=bgcolor, key="SMP_VOCAL_GLITCH")], 
+	[sg.Sizer(h_pixels=20), sg.Checkbox("Vocal_Glitch_Loops", background_color=bgcolor, key="SMP_VOCAL_GLITCH_LOOPS")], 
+
+	], background_color=windowcolor, scrollable=True, vertical_scroll_only=True, sbar_background_color=bgcolor, expand_x=True, expand_y=True)]
+	layout = [samplepack_folderlist,
+		[sg.Text('Folder', background_color=bgcolor), 
+		sg.In(size=(25,1), enable_events=True ,key='-SMPFOLDER-', readonly=True), 
+		sg.FolderBrowse(button_color=scolor)],  
+		[sg.Button(button_text="Create", s=10, button_color=bgcolor), sg.Button(button_text="Cancel", s=10, button_color=bgcolor)]
+		]
+	popup = sg.Window('Sample Pack Generator', layout, background_color=windowcolor, icon=resource_path("data/dtico.ico"), font=("Calibri", 11), resizable=True, size=(750,1000))
+	while True:
+		popevent, v = popup.read()
+		if popevent in (sg.WIN_CLOSED, 'Exit'):
+			break
+		if popevent == '-SMPFOLDER-':
+			smpfolder = v['-SMPFOLDER-']
+			smpfolderset = True
+			print(smpfolder)
+		if popevent == "Create":
+			if smpfolderset:
+				#### DRUMS
+				os_drumfolder = smpfolder + "/One_Shots/Drums"
+				lp_drumfolder = smpfolder + "/Loops/Drum_Loops"
+				if v["SMP_DRUM_LOOPS"]:
+					make_safedir(lp_drumfolder)
+					if v["SMP_CYMBAL_LOOPS"]:
+						make_safedir(lp_drumfolder + "/Cymbal_Loops")
+					if v["SMP_HAT_LOOPS"]:
+						make_safedir(lp_drumfolder + "/Hat_Loops")
+					if v["SMP_KICK_LOOPS"]:
+						make_safedir(lp_drumfolder + "/Kick_Loops")
+					if v["SMP_SNARE_LOOPS"]:
+						make_safedir(lp_drumfolder + "/Snare_Loops")
+				if v["SMP_DRUM_HITS"]:
+					make_safedir(os_drumfolder)
+					if v["SMP_CYMBALS"]:
+						make_safedir(os_drumfolder + "/Cymbals")
+					if v["SMP_HATS"]:
+						make_safedir(os_drumfolder + "/Hats")
+					if v["SMP_KICKS"]:
+						make_safedir(os_drumfolder + "/Kicks")
+					if v["SMP_SNARES"]:
+						make_safedir(os_drumfolder + "/Snares")
+
+				##### PERC
+				if v["SMP_PERCUSSION_LOOPS"]:
+					make_safedir(smpfolder + "/Loops/Percussion_Loops")
+				if v["SMP_PERCUSSION_HITS"]:
+					make_safedir(smpfolder + "/One_Shots/Percussion")
+
+				#### BASS
+				if v["SMP_BASS_LOOPS"]:
+						make_safedir(smpfolder + "/Loops/Bass_Loops")
+				if v["SMP_BASS_SHOTS"]:
+						make_safedir(smpfolder + "/One_Shots/Bass_Shots")
+
+				#### SYNTHS
+				if v["SMP_SYNTH_LOOPS"]:
+					make_safedir(smpfolder + "/Loops/Synth_Loops")
+				if v["SMP_SYNTH_SHOTS"]:
+					make_safedir(smpfolder + "/One_Shots/Synth_Shots")
+
+
+				### FX
+				os_fxfolder = smpfolder + "/One_Shots/FX"
+				lp_fxfolder = smpfolder + "/Loops/FX_Loops"
+				if v["SMP_FX_LOOPS"]:
+					make_safedir(lp_fxfolder + "/SFX_Loops")
+				if v["SMP_FX_SHOTS"]:
+					make_safedir(os_fxfolder + "/SFX_Shots")
+				if v["SMP_FX_DOWNLIFTERS"]:
+					make_safedir(os_fxfolder + "/FX_Downlifters")
+				if v["SMP_FX_UPLIFTERS"]:
+					make_safedir(os_fxfolder + "/FX_Uplifters")
+				if v["SMP_FX_IMPACTS"]:
+					make_safedir(os_fxfolder + "/FX_Impacts")
+				if v["SMP_FX_AMBIENCE"]:
+					make_safedir(os_fxfolder + "/FX_Ambience")
+				if v["SMP_FX_AMBIENCE_LOOPS"]:
+					make_safedir(lp_fxfolder + "/FX_Ambience_Loops")
+				if v["SMP_FX_GLITCH"]:
+					make_safedir(os_fxfolder + "/FX_Glitch")
+				if v["SMP_FX_GLITCH_LOOPS"]:
+					make_safedir(lp_fxfolder + "/FX_Glitch_Loops")
+				if v["SMP_FX_TEXTURES"]:
+					make_safedir(lp_fxfolder + "/FX_Textures")
+				if v["SMP_FX_TEXTURE_LOOPS"]:
+					make_safedir(lp_fxfolder + "/FX_Texture_Loops")
+
+				### VOCAL
+				os_vocfolder = smpfolder + "/One_Shots/Vocals"
+				lp_vocfolder = smpfolder + "/Loops/Vocal_Loops"
+				if v["SMP_VOCAL_LOOPS"]:
+					make_safedir(lp_vocfolder)
+				if v["SMP_VOCAL_SHOTS"]:
+					make_safedir(os_vocfolder + "/Vocal_Shots")
+				if v["SMP_VOCAL_CHOPS"]:
+					make_safedir(os_vocfolder + "/Vocal_Chops")
+				if v["SMP_VOCAL_CHOP_LOOPS"]:
+					make_safedir(lp_vocfolder + "/Vocal_Chop Loops")
+				if v["SMP_VOCAL_AMBIENCE"]:
+					make_safedir(os_vocfolder + "/Vocal_Ambience")
+				if v["SMP_VOCAL_AMBIENCE_LOOPS"]:
+					make_safedir(lp_vocfolder + "/Vocal_Ambience_Loops")
+				if v["SMP_VOCAL_GLITCH"]:
+					make_safedir(os_vocfolder + "/Vocal_Glitch")
+				if v["SMP_VOCAL_GLITCH_LOOPS"]:
+					make_safedir(lp_vocfolder + "/Vocal_Glitch_Loops")
+
+
+
+				#####
+				popup.close()
+		if popevent == "Cancel":
+			popup.close()
+
 ### Modules
 
-def trimsilence(files):
+def trim_silence(files):
 	for file in files:
 		fname = os.path.basename(file)
 		sound = AudioSegment.from_file(file)
@@ -124,7 +285,7 @@ def trimsilence(files):
 		trimmed_sound.export(file, format="wav")
 		filelog("Trimmed " + fname)
 
-def convertbitrate(files):
+def convert_bitrate(files):
 	bitrate = str(values['-BITRATE-'])
 	for file in files:
 		fname = os.path.basename(file)
@@ -132,7 +293,7 @@ def convertbitrate(files):
 		soundfile.write(file, data, samplerate, subtype='PCM_' + bitrate)
 		filelog("Converting " + fname + " to " + bitrate + " - bit")
 
-def convertsamplerate(files):
+def convert_samplerate(files):
 	samplerate = int(values['-SAMPLERATE-'])
 	for file in files:
 		fname = os.path.basename(file)
@@ -172,27 +333,29 @@ def rmempty(files, FLStudio):
 				filelog("Removing " + fname)
 				os.remove(file)
 
-def setprefix(files, prefix):
+def set_prefix(files, prefix):
 	curproc = 0
+	newfiles = []
 	for file in files:
 		fname = os.path.basename(file)
 		d = os.path.dirname(file)
 		os.rename(file, d + "/" + prefix + fname)
 		filelog("Renamed to " + prefix + fname)
 		curproc += 1
-		if curproc == len(files):
-			updatefilelist(values["-SHOWPATHS-"], getfiles(d, values['-REC-']))
+		newfiles.append(d + "/" + prefix + fname)
+	return newfiles
 
-def setsuffix(files, suffix):
+def set_suffix(files, suffix):
 	curproc = 0
+	newfiles = []
 	for file in files:
 		fname = os.path.basename(file).split(".")[0]
 		d = os.path.dirname(file)
 		os.rename(file, d + "/" + fname + suffix + ".wav")
 		filelog("Renamed to " + fname + suffix + ".wav")
 		curproc += 1
-		if curproc == len(files):
-			updatefilelist(values["-SHOWPATHS-"], getfiles(d, values['-REC-']))
+		newfiles.append(d + "/" + fname + suffix + ".wav")
+	return newfiles
 
 def findrepl(files, rplfrom, rplto):
 	curproc = 0
@@ -204,7 +367,7 @@ def findrepl(files, rplfrom, rplto):
 		os.rename(file, d + "/" + newfname)
 		curproc += 1
 		if curproc == len(files):
-			updatefilelist(values["-SHOWPATHS-"], getfiles(d, values['-REC-']))
+			update_filelist(values["-SHOWPATHS-"], get_files(d, values['-REC-']))
 
 
 ### GUI Logic
@@ -223,54 +386,55 @@ while True:
 		break
 	if event == '-FOLDER-':
 		folder = values['-FOLDER-']
-		currentfiles = getfiles(folder, values['-REC-'])
-		updatefilelist(values["-SHOWPATHS-"], currentfiles)
+		currentfiles = get_files(folder, values['-REC-'])
+		update_filelist(values["-SHOWPATHS-"], currentfiles)
 		folderset = True
 		filelog("Folder Set")
 	if event == 'Refresh':
 		if folderset == True:
-			currentfiles = getfiles(folder, values['-REC-'])
-			updatefilelist(values["-SHOWPATHS-"], currentfiles)	
+			currentfiles = get_files(folder, values['-REC-'])
+			update_filelist(values["-SHOWPATHS-"], currentfiles)	
 
 	if event == '-REC-':
 		if folderset == True:
-			currentfiles = getfiles(folder, values['-REC-'])
-			updatefilelist(values["-SHOWPATHS-"], currentfiles)
+			currentfiles = get_files(folder, values['-REC-'])
+			update_filelist(values["-SHOWPATHS-"], currentfiles)
 
 	if event == '-SHOWPATHS-':
 		if folderset == True:
-			currentfiles = getfiles(folder, values['-REC-'])
-			updatefilelist(values["-SHOWPATHS-"], currentfiles)
+			currentfiles = get_files(folder, values['-REC-'])
+			update_filelist(values["-SHOWPATHS-"], currentfiles)
+	if event == 'Create Sample Folders':
+		spawn_popup_samples()
 
 
 	if event == 'Process':
 		if folderset == True:
-			currentfiles = getfiles(folder, values['-REC-'])
+			if values['-LIST-'] != []:
+				currentfiles = get_full_foldernames(folder, values['-LIST-'])
+			else:
+				currentfiles = get_files(folder, values['-REC-'])
 			try:
 				if values['-TRIM-'] == True:
-					trimsilence(currentfiles)
+					trim_silence(currentfiles)
 				if values['-NORM-'] == True:
 					normalize(currentfiles)            
 				if values['-BIT-'] == True:
-					convertbitrate(currentfiles)
+					convert_bitrate(currentfiles)
 				if values['-SMPRATE-'] == True:
-					convertsamplerate(currentfiles)
+					convert_samplerate(currentfiles)
 				if values['-PREFIXBOOL-'] == True:
-					setprefix(currentfiles, values["-PREFIXSTR-"])
-					currentfiles = getfiles(folder, values['-REC-'])
+					currentfiles = set_prefix(currentfiles, values["-PREFIXSTR-"])
 				if values['-SUFFIXBOOL-'] == True:
-					setsuffix(currentfiles, values["-SUFFIXSTR-"])
-					currentfiles = getfiles(folder, values['-REC-'])
+					currentfiles = set_suffix(currentfiles, values["-SUFFIXSTR-"])
 				if values['-REPL-'] == True:
-					try:
-						findrepl(currentfiles, values["-RPLFROM-"], values["-RPLTO-"])
-					except FileNotFoundError:
-						findrepl(getfiles(folder, values['-REC-']), values["-RPLFROM-"], values["-RPLTO-"])
+					findrepl(currentfiles, values["-RPLFROM-"], values["-RPLTO-"])
 
 
 ##### Destructive, should be last!
 				if values['-EMPTY-'] == True:
 					rmempty(currentfiles, values['-EMPTYFL-'])
+				update_filelist(values["-SHOWPATHS-"], get_files(folder, values['-REC-']))
 
 
 			except NameError as error:
