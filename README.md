@@ -21,4 +21,4 @@ If this does not work you can also run the python script directly after installi
 
 If all above fails you are out of luck and should probably contact me :)
 
-![alt text](https://www.dropbox.com/s/zk7vokchyhcuvnu/absimg.PNG?raw=1 "ABS")
+![alt text](https://www.dropbox.com/s/8bjl9axq6dzjw0x/absimg.PNG?raw=1 "ABS")
