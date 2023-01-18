@@ -348,13 +348,13 @@ def convert_bitrate(files):
 
 
 def convert_samplerate(files):
-    samplerate = int(values['-SAMPLERATE-'])
+    new_samplerate = int(values['-SAMPLERATE-'])
     for file in files:
         fname = os.path.basename(file)
         ob = soundfile.SoundFile(file)
         data, samplerate = soundfile.read(file)
-        soundfile.write(file, data, samplerate, subtype=ob.subtype)
-        filelog("Converting " + fname + " to " + str(samplerate) + " - bit")
+        soundfile.write(file, data, new_samplerate, subtype=ob.subtype)
+        filelog("Converting " + fname + " to " + str(new_samplerate) + " - bit")
 
 
 def normalize(files):
