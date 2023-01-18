@@ -3,6 +3,7 @@ import soundfile
 import glob
 import os
 import sys
+from threading import Thread
 from pydub import AudioSegment, effects
 
 
@@ -47,7 +48,7 @@ log = []
 modulecol1 = sg.Column([
     [sg.Checkbox('Trim leading/ending silence', key='-TRIM-', background_color=bgcolor)], 
     [sg.Checkbox('Normalize peak with', key='-NORM-', background_color=bgcolor), sg.In("1", size=(3, 3), key='-HEADRM-', ), sg.Text('db headroom', background_color=bgcolor)],
-    [sg.Checkbox('Convert bitrate', key="-BIT-", background_color=bgcolor), sg.Combo([16, 24], default_value=24, button_background_color=scolor, key='-BITRATE-', readonly=True), sg.Text("BIT", background_color=bgcolor)],
+    [sg.Checkbox('Convert bitrate', key="-BIT-", background_color=bgcolor), sg.Combo([16, 24, 32], default_value=24, button_background_color=scolor, key='-BITRATE-', readonly=True), sg.Text("BIT", background_color=bgcolor)],
     [sg.Checkbox('Convert samplerate', key="-SMPRATE-", background_color=bgcolor), sg.Combo([44100, 48000, 96000, 192000], default_value=44100, button_background_color=scolor, key='-SAMPLERATE-', readonly=True), sg.Text("Hz", background_color=bgcolor)],    
     [sg.Checkbox('Delete empty audio files', key="-EMPTY-", background_color=bgcolor)],
     [sg.Checkbox('Include _Master / _Current files? (FL)', default=True, key="-EMPTYFL-", pad=(30, 0), background_color=bgcolor,)]
@@ -117,7 +118,6 @@ def update_filelist(showpaths, paths):
 
 def get_files(directory, recursive):
     files = []
-    print(f'getting files in {directory} with recursive: {recursive}')
     # get all .wav files, recursively if recursive = True using glob
     if recursive:
         files = glob.glob(directory + "/**/*.wav", recursive=True)
@@ -342,8 +342,9 @@ def convert_bitrate(files):
     bitrate = str(values['-BITRATE-'])
     for file in files:
         fname = os.path.basename(file)
+        subtype = 'FLOAT' if bitrate == 32 else 'PCM_' + bitrate
         data, samplerate = soundfile.read(file)
-        soundfile.write(file, data, samplerate, subtype='PCM_' + bitrate)
+        soundfile.write(file, data, samplerate, subtype=subtype)
         filelog("Converting " + fname + " to " + bitrate + " - bit")
 
 
@@ -427,13 +428,43 @@ def findrepl(files, rplfrom, rplto):
         if curproc == len(files):
             update_filelist(values["-SHOWPATHS-"], get_files(d, values['-REC-']))
 
-
+def startprocess(values):
+    set_active(False)
+    if values['-LIST-'] != []:
+        currentfiles = get_full_foldernames(folder, values['-LIST-'])
+    else:
+        currentfiles = get_files(folder, values['-REC-'])
+    try:
+        if values['-TRIM-']:
+            trim_silence(currentfiles)
+        if values['-NORM-']:
+            normalize(currentfiles)            
+        if values['-BIT-']:
+            convert_bitrate(currentfiles)
+        if values['-SMPRATE-']:
+            convert_samplerate(currentfiles)
+        if values['-PREFIXBOOL-']:
+            currentfiles = set_prefix(currentfiles, values["-PREFIXSTR-"])
+        if values['-SUFFIXBOOL-']:
+            currentfiles = set_suffix(currentfiles, values["-SUFFIXSTR-"])
+        if values['-REPL-']:
+            findrepl(currentfiles, values["-RPLFROM-"], values["-RPLTO-"])
+# Destructive, should be last!
+        if values['-EMPTY-']:
+            rmempty(currentfiles, values['-EMPTYFL-'])
+        update_filelist(values["-SHOWPATHS-"], get_files(folder, values['-REC-']))
+    except NameError as error:
+        filelog(error)
+        set_active()
+    set_active()
 # GUI Logic
 
 def filelog(logmsg):
     log.append(logmsg)
     window.Element('-LOG-').update(log, scroll_to_index=len(log))
 
+def set_active(active=True):
+    window.Element('Process').update(disabled=not active)
 
 filelog("Ready to juice! By Dion Timmer")
 
@@ -467,32 +498,6 @@ while True:
 
     if event == 'Process':
         if folderset:
-            if values['-LIST-'] != []:
-                currentfiles = get_full_foldernames(folder, values['-LIST-'])
-            else:
-                currentfiles = get_files(folder, values['-REC-'])
-            try:
-                if values['-TRIM-']:
-                    trim_silence(currentfiles)
-                if values['-NORM-']:
-                    normalize(currentfiles)            
-                if values['-BIT-']:
-                    convert_bitrate(currentfiles)
-                if values['-SMPRATE-']:
-                    convert_samplerate(currentfiles)
-                if values['-PREFIXBOOL-']:
-                    currentfiles = set_prefix(currentfiles, values["-PREFIXSTR-"])
-                if values['-SUFFIXBOOL-']:
-                    currentfiles = set_suffix(currentfiles, values["-SUFFIXSTR-"])
-                if values['-REPL-']:
-                    findrepl(currentfiles, values["-RPLFROM-"], values["-RPLTO-"])
-
-
-# Destructive, should be last!
-                if values['-EMPTY-']:
-                    rmempty(currentfiles, values['-EMPTYFL-'])
-                update_filelist(values["-SHOWPATHS-"], get_files(folder, values['-REC-']))
-            except NameError as error:
-                filelog(error)
+            Thread(target=startprocess, args=(values,)).start()
 
 window.close()
