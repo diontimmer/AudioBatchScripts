@@ -11,6 +11,7 @@ These tools include:
 - Convert 32bit to 24bit for compatibility of certain programs
 - Add prefixes to your files (KICK_Filename.wav)
 - Find and replace text.
+- resampling is broken
 
 To install:
 Download a built .exe from [here](https://www.github.com/diontimmer/AudioBatchScripts/releases/latest/download/ABS.exe) and run it.
